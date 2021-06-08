@@ -6,7 +6,6 @@ android {
         targetSdkVersion 29
         minSdkVersion 18
         vectorDrawables.useSupportLibrary true
-
         applicationId "de.kai_morich.simple_bluetooth_le_terminal"
         versionCode 1
         versionName "1.0"
@@ -24,6 +23,7 @@ android {
 }
 
 dependencies {
+    implementation "org.java-websocket:Java-WebSocket:1.5.1"
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'com.google.android.material:material:1.2.1'
 }

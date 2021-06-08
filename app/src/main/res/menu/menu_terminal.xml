@@ -16,6 +16,12 @@
         android:checkable="true"
         app:showAsAction="never" />
     <item
+        android:id="@+id/tcpset"
+        android:checkable="true"
+        android:enabled="true"
+        android:title="tcp?"
+        android:visible="true" />
+    <item
         android:id="@+id/tcpserver"
         android:checkable="true"
         android:checked="false"

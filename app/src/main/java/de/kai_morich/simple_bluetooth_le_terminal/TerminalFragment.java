@@ -32,6 +32,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import org.java_websocket.WebSocket;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -153,13 +155,17 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
         return view;
     }
 
+    Menu mymenu;
+
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.menu_terminal, menu);
         menu.findItem(R.id.hex).setChecked(hexEnabled);
+        mymenu = menu;
     }
 
     protected TcpMultiServer tcpserver;
+    protected WebSockServer wsserver;
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -186,9 +192,18 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
             sendText.setHint(hexEnabled ? "HEX mode" : "");
             item.setChecked(hexEnabled);
             return true;
+        } else if (id == R.id.tcpset) {
+            item.setChecked(!item.isChecked());
+            return true;
         } else if (id == R.id.tcpserver) {
             if (item.isChecked()) {
                 status("stop server");
+                if (wsserver != null)
+                    try {
+                        wsserver.stop();
+                    } catch (Exception e) {
+                    }
+
                 if (tcpserver != null)
                     tcpserver.stop();
                 if (clientSocket != null) {
@@ -210,34 +225,55 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
             alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int whichButton) {
                     //Put actions for OK button here
-                    Log.d("port", "cliecked on" + input.getText());
+                    Log.d("port", "clicked on: " + input.getText());
                     int port;
                     try {
                         port = Integer.parseInt(input.getText().toString());
                     } catch (NumberFormatException nfe) {
                         port = 3000;
                     }
-                    status("tcpserver started on port: " + port + "\n");
-                    tcpserver = new TcpMultiServer(port, "ble-server", true) {
-                        @Override
-                        public void newclient(Socket clientSocket) {
-                            new Thread(new BLEserver(clientSocket)).start();
-                        }
-                    };
-                    new Thread(tcpserver).start();
+                    MenuItem tcpon = mymenu.findItem(R.id.tcpset);
+
+                    if (!tcpon.isChecked()) {
+                        status("Websocket-server started on port: " + port + "\n");
+                        wsserver = new WebSockServer(port) {
+                            @Override
+                            public void report(String s) {
+                                status("WS: " + s);
+                            }
+
+                            @Override
+                            public void onMessage(WebSocket arg0, String arg1) {
+                                // TODO Auto-generated method stub
+                                report(arg1);
+                                send(arg1);
+                            }
+                        };
+                        wsserver.start();
+                    } else {
+                        status("tcpserver started on port: " + port + "\n");
+
+                        tcpserver = new TcpMultiServer(port, "ble-server", true) {
+                            @Override
+                            public void newclient(Socket clientSocket) {
+                                new Thread(new BLEserver(clientSocket)).start();
+                            }
+                        };
+                        new Thread(tcpserver).start();
+                    }
                     item.setChecked(true);
                 }
-            });
-            alert.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
+            }).setNegativeButton("cancel", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int whichButton) {
                     item.setChecked(false);
                 }
             });
             alert.show();
             return true;
-        } else {
-            return super.onOptionsItemSelected(item);
         }
+
+        return super.onOptionsItemSelected(item);
+
     }
 
     /*
