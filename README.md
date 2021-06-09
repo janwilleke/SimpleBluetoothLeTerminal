@@ -1,5 +1,7 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/3f9ba45b5c5449179150010659311f57)](https://www.codacy.com/manual/kai-morich/SimpleBluetoothLeTerminal?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=kai-morich/SimpleBluetoothLeTerminal&amp;utm_campaign=Badge_Grade)
 
+# This is a fork with tcp / websocket support!!!!!! (the original owner does not like this features...)
+
 # SimpleBluetoothLeTerminal
 
 This Android app provides a line-oriented terminal / console for Bluetooth LE (4.x) devices implementing a custom serial profile
